@@ -54,7 +54,10 @@ M.show_current_version = function()
       local package_name = line:match('"([^"]+)"')
       local info = package_info.dependencies[package_name]
       if info ~= nil then
-        local text = { { "installed: " .. info.version, "Comment" } }
+        local text = {}
+        if info.version then
+          text = { { "installed: " .. info.version, "Comment" } }
+        end
 
         vim.api.nvim_buf_set_extmark(0, namespace, line_number - 1, 0, {
           virt_text = text,
