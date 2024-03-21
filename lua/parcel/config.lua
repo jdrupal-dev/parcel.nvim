@@ -3,9 +3,7 @@
 ---@field options Config: config table extending defaults
 local M = {}
 
-M.defaults = {
-  round = true,
-}
+M.defaults = {}
 
 ---@class Config
 ---@field round boolean: round the result after calculation
