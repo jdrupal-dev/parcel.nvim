@@ -6,6 +6,9 @@
 
 - [jsonpath.nvim](https://github.com/phelipetls/jsonpath.nvim)
 
+### Optional
+- [cargo-outdated](https://github.com/kbknapp/cargo-outdated) - for cargo support.
+
 ## :package: Installation
 
 Install this plugin using your favorite plugin manager, and then call
@@ -29,4 +32,11 @@ Install this plugin using your favorite plugin manager, and then call
 
 **Supported package managers**
 - Composer
+  - Installed version shown in composer.json
+  - New minor and/or major version(s) shown in composer.json
 - NPM/Yarn
+  - Installed version shown in package.json
+  - New minor and/or major version(s) shown in package.json
+- Cargo
+  - [ ] TODO: Show installed version in Cargo.toml
+  - New minor and/or major version(s) shown in Cargo.toml

@@ -2,44 +2,58 @@ local M = {
   dependency_file_pattern = "package.json",
 }
 
-M.get_outdated_packages = function(file_path)
+M.get_outdated_packages = function(file_path, force_update)
   local cache = "/tmp/outdated-packages" .. file_path:gsub("/", "-")
   local exists = vim.loop.fs_stat(cache)
+
+  local result
   if exists then
     local content = vim.fn.readfile(cache)
     if next(content) ~= nil then
-      return vim.fn.json_decode(content)
+      result = vim.fn.json_decode(content)
     end
   end
 
-  vim.fn.jobstart("npm outdated --json > " .. cache, {
-    cwd = file_path:match("(.*/)"),
-    on_exit = function()
-      print("Fetched outdated node modules.")
-    end,
-  })
+  if not exists or force_update then
+    vim.fn.jobstart("npm outdated --json > " .. cache, {
+      cwd = file_path:match("(.*/)"),
+      on_exit = function()
+        print("Fetched outdated node modules.")
+        M.show_new_version(file_path, false)
+      end,
+    })
+  end
+
+  return result
 end
 
-M.get_package_list = function(file_path)
+M.get_package_list = function(file_path, force_update)
   local cache = "/tmp/packages" .. file_path:gsub("/", "-")
   local exists = vim.loop.fs_stat(cache)
+
+  local result
   if exists then
     local content = vim.fn.readfile(cache)
     if next(content) ~= nil then
-      return vim.fn.json_decode(content)
+      result = vim.fn.json_decode(content)
     end
   end
 
-  vim.fn.jobstart("npm list --json > " .. cache, {
-    cwd = file_path:match("(.*/)"),
-    on_exit = function()
-      print("Fetched node module versions.")
-    end,
-  })
+  if not exists or force_update then
+    vim.fn.jobstart("npm list --json > " .. cache, {
+      cwd = file_path:match("(.*/)"),
+      on_exit = function()
+        print("Fetched node module versions.")
+        M.show_current_version(file_path, false)
+      end,
+    })
+  end
+
+  return result
 end
 
-M.show_current_version = function()
-  local package_info = M.get_package_list(vim.api.nvim_buf_get_name(0))
+M.show_current_version = function(file_path, force_update)
+  local package_info = M.get_package_list(file_path, force_update)
   if not package_info or not package_info.dependencies then
     return
   end
@@ -61,14 +75,15 @@ M.show_current_version = function()
 
         vim.api.nvim_buf_set_extmark(0, namespace, line_number - 1, 0, {
           virt_text = text,
+          right_gravity = false,
         })
       end
     end
   end
 end
 
-M.show_new_version = function()
-  local package_info = M.get_outdated_packages(vim.api.nvim_buf_get_name(0))
+M.show_new_version = function(file_path, force_update)
+  local package_info = M.get_outdated_packages(file_path, force_update)
   if not package_info then
     return
   end
