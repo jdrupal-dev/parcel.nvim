@@ -1,6 +1,6 @@
 # parcel.nvim :package:
 
-<img width="1699" alt="image" src="https://github.com/jdrupal-dev/parcel.nvim/assets/13871894/6cd5f30e-df26-4503-9d9a-077ab7f6163c">
+![image](https://github.com/jdrupal-dev/parcel.nvim/assets/13871894/452057ac-ec01-4ac3-b5b0-ed59bd4b51ce)
 
 ## :lock: Requirements
 
