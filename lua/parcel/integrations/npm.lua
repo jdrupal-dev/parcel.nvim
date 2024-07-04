@@ -40,7 +40,7 @@ M.get_package_list = function(file_path, force_update)
   end
 
   if not exists or force_update then
-    vim.fn.jobstart("npm list --json > " .. cache, {
+    vim.fn.jobstart("npm list --json --package-lock-only > " .. cache, {
       cwd = file_path:match("(.*/)"),
       on_exit = function()
         print("Fetched node module versions.")
@@ -61,6 +61,9 @@ M.show_current_version = function(file_path, force_update)
   local namespace = vim.api.nvim_create_namespace("npm-current-version")
   vim.api.nvim_buf_clear_namespace(0, namespace, 1, -1)
 
+  -- jsonpath requires us to modify the cursor, we store it so that we can
+  -- revert to the original cursor position after adding the extmarks.
+  local original_cursor = vim.api.nvim_win_get_cursor(0)
   for line_number, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, true)) do
     vim.api.nvim_win_set_cursor(0, { line_number, #line - 1 })
     local path = require("jsonpath").get()
@@ -80,6 +83,7 @@ M.show_current_version = function(file_path, force_update)
       end
     end
   end
+  vim.api.nvim_win_set_cursor(0, original_cursor)
 end
 
 M.show_new_version = function(file_path, force_update)
@@ -91,6 +95,9 @@ M.show_new_version = function(file_path, force_update)
   local namespace = vim.api.nvim_create_namespace("npm-new-version")
   vim.api.nvim_buf_clear_namespace(0, namespace, 1, -1)
 
+  -- jsonpath requires us to modify the cursor, we store it so that we can
+  -- revert to the original cursor position after adding the extmarks.
+  local original_cursor = vim.api.nvim_win_get_cursor(0)
   for line_number, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, true)) do
     vim.api.nvim_win_set_cursor(0, { line_number, #line - 1 })
     local path = require("jsonpath").get()
@@ -112,6 +119,7 @@ M.show_new_version = function(file_path, force_update)
       end
     end
   end
+  vim.api.nvim_win_set_cursor(0, original_cursor)
 end
 
 return M
