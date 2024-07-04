@@ -40,7 +40,7 @@ M.get_package_list = function(file_path, force_update)
   end
 
   if not exists or force_update then
-    vim.fn.jobstart("npm list --json --package-lock-only > " .. cache, {
+    vim.fn.jobstart("npm list --json > " .. cache, {
       cwd = file_path:match("(.*/)"),
       on_exit = function()
         print("Fetched node module versions.")
