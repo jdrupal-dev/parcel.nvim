@@ -64,10 +64,28 @@ M.show_current_version = function(file_path, force_update)
   -- jsonpath requires us to modify the cursor, we store it so that we can
   -- revert to the original cursor position after adding the extmarks.
   local original_cursor = vim.api.nvim_win_get_cursor(0)
+  local current_audit = nil
   for line_number, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, true)) do
     vim.api.nvim_win_set_cursor(0, { line_number, #line - 1 })
     local path = require("jsonpath").get()
+
+    -- Render current audit if the path has changed.
+    if current_audit and path:find(current_audit.path) == nil then
+      vim.api.nvim_buf_set_extmark(0, namespace, current_audit.line - 1, 0, {
+        virt_text = { { "total: " .. current_audit.total, "Comment" } },
+        right_gravity = false,
+      })
+      current_audit = nil
+    end
+
     if path:find("^%.dependencies") ~= nil or path:find("^%.devDependencies") ~= nil then
+      if current_audit == nil then
+        current_audit = {
+          total = 0,
+          line = line_number,
+          path = path,
+        }
+      end
       local package_name = line:match('"([^"]+)"')
       local info = package_info.dependencies[package_name]
       if info ~= nil then
@@ -76,6 +94,7 @@ M.show_current_version = function(file_path, force_update)
           text = { { "installed: " .. info.version, "Comment" } }
         end
 
+        current_audit.total = current_audit.total + 1
         vim.api.nvim_buf_set_extmark(0, namespace, line_number - 1, 0, {
           virt_text = text,
           right_gravity = false,
@@ -98,19 +117,53 @@ M.show_new_version = function(file_path, force_update)
   -- jsonpath requires us to modify the cursor, we store it so that we can
   -- revert to the original cursor position after adding the extmarks.
   local original_cursor = vim.api.nvim_win_get_cursor(0)
+  local current_audit = nil
   for line_number, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, true)) do
     vim.api.nvim_win_set_cursor(0, { line_number, #line - 1 })
     local path = require("jsonpath").get()
+
+    -- Render current audit if the path has changed.
+    if current_audit and path:find(current_audit.path) == nil then
+      local audit_text = {}
+      if current_audit.minor > 0 then
+        table.insert(audit_text, { "| minor: ", "Comment" })
+        -- Convert number to string.
+        table.insert(audit_text, { current_audit.minor .. "", "warningMsg" })
+      end
+      if current_audit.major > 0 then
+        table.insert(audit_text, { " | major: ", "Comment" })
+        -- Convert number to string.
+        table.insert(audit_text, { current_audit.major .. "", "errorMsg" })
+      end
+      vim.api.nvim_buf_set_extmark(0, namespace, current_audit.line - 1, 0, {
+        virt_text = audit_text,
+      })
+      current_audit = nil
+    end
+
     if path:find("^%.dependencies") ~= nil or path:find("^%.devDependencies") ~= nil then
+      if current_audit == nil then
+        current_audit = {
+          major = 0,
+          minor = 0,
+          line = line_number,
+          path = path,
+        }
+      end
+
       local package_name = line:match('"([^"]+)"')
       local info = package_info[package_name]
       if info ~= nil then
         local text = { { "| minor: ", "Comment" }, { info.wanted, "warningMsg" } }
         if info.wanted == info.current then
+          current_audit.major = current_audit.major + 1
           text = { { "| major: ", "Comment" }, { info.latest, "errorMsg" } }
         elseif info.wanted ~= info.latest then
+          current_audit.major = current_audit.major + 1
           table.insert(text, { " | major: ", "Comment" })
           table.insert(text, { info.latest, "errorMsg" })
+        else
+          current_audit.minor = current_audit.minor + 1
         end
 
         vim.api.nvim_buf_set_extmark(0, namespace, line_number - 1, 0, {
