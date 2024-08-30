@@ -175,4 +175,9 @@ M.show_new_version = function(file_path, force_update)
   vim.api.nvim_win_set_cursor(0, original_cursor)
 end
 
+M.clear_namespaces = function()
+  vim.api.nvim_buf_clear_namespace(0, vim.api.nvim_create_namespace("npm-new-version"), 1, -1)
+  vim.api.nvim_buf_clear_namespace(0, vim.api.nvim_create_namespace("npm-current-version"), 1, -1)
+end
+
 return M

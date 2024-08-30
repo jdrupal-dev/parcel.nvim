@@ -2,11 +2,9 @@ local M = {
   dependency_file_pattern = "Cargo.toml",
 }
 
-M.get_package_list = function(file_path, force_update)
-end
+M.get_package_list = function(file_path, force_update) end
 
-M.show_current_version = function(file_path, force_update)
-end
+M.show_current_version = function(file_path, force_update) end
 
 M.get_outdated_packages = function(file_path, force_update)
   local cache = "/tmp/outdated-packages" .. file_path:gsub("/", "-")
@@ -59,7 +57,7 @@ M.show_new_version = function(file_path, force_update)
     end
 
     if is_dependencies then
-      local package_name = line:match('^([^ ]+) =')
+      local package_name = line:match("^([^ ]+) =")
       local info = package_info[package_name]
       if info ~= nil then
         local text = { { "minor: ", "Comment" }, { info.compat, "warningMsg" } }
@@ -76,6 +74,10 @@ M.show_new_version = function(file_path, force_update)
       end
     end
   end
+end
+
+M.clear_namespaces = function()
+  vim.api.nvim_buf_clear_namespace(0, vim.api.nvim_create_namespace("cargo-new-version"), 1, -1)
 end
 
 return M

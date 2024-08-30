@@ -3,10 +3,12 @@
 ---@field options Config: config table extending defaults
 local M = {}
 
-M.defaults = {}
+M.defaults = {
+  default_enabled = true,
+}
 
 ---@class Config
----@field round boolean: round the result after calculation
+---@field default_enabled boolean: if the plugin is enabled by default.
 M.options = {}
 
 --- We will not generate documentation for this function
@@ -15,16 +17,6 @@ M.options = {}
 ---@param options Config: config table
 M.__setup = function(options)
   M.options = vim.tbl_deep_extend("force", {}, M.defaults, options or {})
-end
-
----Format the defaults options table for documentation
----@return table
-M.__format_keys = function()
-  local tbl = vim.split(vim.inspect(M.defaults), "\n")
-  table.insert(tbl, 1, "<pre>")
-  table.insert(tbl, 2, "Defaults: ~")
-  table.insert(tbl, #tbl, "</pre>")
-  return tbl
 end
 
 return M
